@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+set -xeuo pipefail
+
+scripts_dir="$(dirname "${BASH_SOURCE[0]}")"
+. "${scripts_dir}/../bash-lib/init"
+
+if [[ -z "${STACK_NAME}" ]]; then
+  bl_die "STACK_NAME must be set before running ${0}"
+fi
+
+bl_info "Removing admin password secret"
+ADMIN_PASSWORD_ARN="${STACK_NAME}_adminpassword"
+aws secretsmanager delete-secret --secret-id "${ADMIN_PASSWORD_ARN}"
+
+bl_info "Initiating Stack Deletion: ${STACK_NAME}"
+aws cloudformation delete-stack \
+  --stack-name "${STACK_NAME}"
+
+bl_info "Waiting for stack deletion: ${STACK_NAME}"
+aws --profile devhughmfa cloudformation wait stack-delete-complete
+
+bl_info "Stack deletion complete: ${STACK_NAME}"

@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+set -xeuo pipefail
+
+SCRIPTS_DIR="$(dirname "${BASH_SOURCE[0]}")"
+. "${SCRIPTS_DIR}/../bash-lib/init"
+
+STACK_NAME="${STACK_NAME:-"conjur-ecs-deploy-${RANDOM}"}"
+CONJUR_TAG="${CONJUR_TAG:-latest}"
+SUB_DOMAIN="${SUB_DOMAIN:-STACK_NAME}"
+ADMIN_PASSWORD_ARN="${STACK_NAME}_adminpassword"
+ADMIN_PASSWORD="$(uuidgen|tee conjur_admin_password)"
+
+bl_info "Storing Admin Password"
+aws secretsmanager create-secret \
+  --name "${ADMIN_PASSWORD_ARN}" \
+  --secret-string "${ADMIN_PASSWORD}"
+
+bl_info "Templating Parameters File"
+sed "${SCRIPTS_DIR}/params-smoketest.template.json" \
+  -e "s/%CONJUR_TAG%/${CONJUR_TAG}/" \
+  -e "s/%SUB_DOMAIN%/${SUB_DOMAIN}/" \
+  -e "s/%ADMIN_PASSWORD_ARN%/${ADMIN_PASSWORD_ARN}/" \
+  > params_smoketest.json
+
+bl_info "Initiating Stack Creation"
+aws cloudformation create-stack \
+  --stack-name "${STACK_NAME}" \
+  --template-body file://cloudformation.yml \
+  --parameters file://params_smoketest.json \
+  --capabilities CAPABILITY_NAMED_IAM
+
+bl_info "Waiting for stack creation to complete"
+aws cloudformation wait stack-create-complete --stack-name "${STACK_NAME}"
+
+bl_info "Recoding Stack Events in stack_events.log"
+aws cloudformation describe-stack-events --stack-name "${STACK_NAME}" > stack_events.log
+
+bl_info "Recoridng Stack Resources in stack_resources.log"
+aws cloudformation describe-stack-resources --stack-name "${STACK_NAME}" stack_resources.log
+
+bl_info "Stack Creation Complete"

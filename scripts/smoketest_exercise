@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+
+set -xeuo pipefail
+
+# Vars
+SCRIPTS_DIR="$(dirname "${BASH_SOURCE[0]}")"
+. "${SCRIPTS_DIR}/../bash-lib/init"
+CLI_IMAGE="${CLI_IMAGE:-"cyberark/conjur-cli:5"}"
+TEST_VAR="TestPolicy/TestVariable"
+TEST_VAR_VALUE_1="$(uuidgen)"
+TEST_VAR_VALUE_2="$(uuidgen)"
+DOMAIN_NAME="${DOMAIN_NAME:-ci.conjur.net}" # Doesn't include this stack's subdomain
+
+# Verify Inputs
+if [[ -z "${STACK_NAME}" ]]; then
+  bl_die "STACK_NAME must be set before running ${0}"
+fi
+if [[ ! -r conjur_admin_password ]];  then
+  bl_die "Cannot open file conjur_admin_password"
+fi
+
+ADMIN_PASSWORD="$(< conjur_admin_password)"
+
+
+# Functions
+
+# Run conjur cli command in docker
+dconjur(){
+  docker run --rm -i \
+    --volume="${PWD}:/workspace" \
+    --volume="${PWD}/cli_root:/root" \
+    --workdir="/workspace" \
+    "${CLI_IMAGE}" \
+    "${@}"
+}
+
+check_variable_value(){
+  conjur_var="${1}"
+  expected_value="${2}"
+  retrieved_value="$(dconjur variable value "${conjur_var}")"
+  if [[ "${retrieved_value}" != "${expected_value}" ]]; then
+    bl_fail "Retrieved value of ${conjur_var} (${retrieved_value}) \
+      does not match the value it was set to (${expected_value})"
+  else
+    echo "Verified the expected value of ${TEST_VAR}: (${expected_value})"
+  fi
+}
+
+# Main flow
+mkdir -p cli_root
+
+# Configure CLI if not already configured.
+if [[ ! -e cli_root/conjur-conjur.pem ]]; then
+  echo -e "yes\nconjur" |dconjur init -u "https://${STACK_NAME}.${DOMAIN_NAME}"
+  set +x +o history
+  echo "dconjur authn login -u admin -p \"***\""
+  dconjur authn login -u admin -p "${ADMIN_PASSWORD}"
+  set -x
+  echo "Conjur CLI Configured"
+else
+  echo "Skipping Conjur CLI configuration as certificate is already present"
+fi
+
+# Load Policy
+if dconjur list variables |grep -q "${TEST_VAR}"; then
+  echo "Policy already loaded, skipping policy load"
+else
+ dconjur policy load root scripts/test_policy.yml
+  echo "Test Policy Loaded"
+fi
+
+# Ensure Variable defined by policy is available
+if dconjur list variables |grep "${TEST_VAR}"; then
+  echo "Verified that variable ${TEST_VAR} exists"
+else
+  bl_die "${TEST_VAR} not found after policy load"
+fi
+
+# Set variable value and read it back
+dconjur variable values add "${TEST_VAR}" "${TEST_VAR_VALUE_1}"
+check_variable_value "${TEST_VAR}" "${TEST_VAR_VALUE_1}"
+
+# Update vairable to a new value and read it back
+dconjur variable values add "${TEST_VAR}" "${TEST_VAR_VALUE_2}"
+check_variable_value "${TEST_VAR}" "${TEST_VAR_VALUE_2}"
+
+echo "Exercise Complete"

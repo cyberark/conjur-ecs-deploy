@@ -1,1 +1,5 @@
-params-*
+/params-*.json
+cli_root/**
+*.log
+.DS_Store
+conjur_admin_password

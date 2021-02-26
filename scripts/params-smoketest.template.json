@@ -1,0 +1,62 @@
+[
+  {
+    "ParameterKey": "VpcCIDR",
+    "ParameterValue": "10.0.0.0/16"
+  },
+  {
+    "ParameterKey": "PrivateSubnetCIDR1",
+    "ParameterValue": "10.0.1.0/24"
+  },
+  {
+    "ParameterKey": "PrivateSubnetCIDR2",
+    "ParameterValue": "10.0.2.0/24"
+  },
+  {
+    "ParameterKey": "PublicSubnetCIDR1",
+    "ParameterValue": "10.0.3.0/24"
+  },
+  {
+    "ParameterKey": "PublicSubnetCIDR2",
+    "ParameterValue": "10.0.4.0/24"
+  },
+  {
+    "ParameterKey": "AvailabilityZone1",
+    "ParameterValue": "us-east-1a"
+  },
+  {
+    "ParameterKey": "AvailabilityZone2",
+    "ParameterValue": "us-east-1c"
+  },
+  {
+    "ParameterKey": "ConjurTag",
+    "ParameterValue": "%CONJUR_TAG%"
+  },
+  {
+    "ParameterKey": "DomainName",
+    "ParameterValue": "ci.conjur.net"
+  },
+  {
+    "ParameterKey": "SubDomain",
+    "ParameterValue": "%SUB_DOMAIN%"
+  },
+  {
+    "ParameterKey": "HostedZoneId",
+    "ParameterValue": "Z0961567208B0VAKSSH89"
+  },
+  {
+    "ParameterKey": "MinContainers",
+    "ParameterValue": "1"
+  },
+  {
+    "ParameterKey": "MaxContainers",
+    "ParameterValue": "2"
+  },
+  {
+    "ParameterKey": "AutoScalingTargetValue",
+    "ParameterValue": "75"
+  },
+  {
+    "ParameterKey": "ConjurAdminPasswordARN",
+    "ParameterValue": "%ADMIN_PASSWORD_ARN%"
+  }
+]
