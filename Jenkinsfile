@@ -15,6 +15,12 @@ pipeline {
   }
 
   stages {
+    stage('Init'){
+      steps {
+        sh 'echo "Init Start"'
+      }
+    }
+    
     stage('Lint'){
       steps {
         sh 'scripts/lint'
