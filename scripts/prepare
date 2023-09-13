@@ -26,6 +26,7 @@ CONTAINER_CPU="${CONTAINER_CPU:-2048}"
 CONTAINER_MEMORY="${CONTAINER_MEMORY:-8192}"
 MAX_CONTAINERS="${MAX_CONTAINERS:-6}"
 MIN_CONTAINERS="${MIN_CONTAINERS:-2}"
+CONJUR_AUTHENTICATORS="${CONJUR_AUTHENTICATORS:-}"
 
 # Generate a random string of characters in a specific character class (according to tr)
 # Used to generate conjur admin password if the secret doesn't already exist.
@@ -118,6 +119,7 @@ CONJUR_DBPASSWORD_ARN="$(resolve_secret_name "${CONJUR_DBPASSWORD_SECRET_NAME}" 
 echo "Templating Parameters File"
 sed \
   -e "s+%CONJUR_IMAGE%+${CONJUR_IMAGE}+" \
+  -e "s+%CONJUR_AUTHENTICATORS%+${CONJUR_AUTHENTICATORS}+" \
   -e "s/%SUB_DOMAIN%/${SUB_DOMAIN}/" \
   -e "s/%ADMIN_PASSWORD_ARN%/${ADMIN_PASSWORD_ARN}/" \
   -e "s/%CONJUR_DATAKEY_ARN%/${CONJUR_DATAKEY_ARN}/" \
