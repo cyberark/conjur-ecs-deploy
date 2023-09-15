@@ -145,6 +145,12 @@ Parameters:
       The 1.25 is to leave reserved connections for replicas and admins.
       For the defaults thats 6 * 50 * 5 * 1.25 = 1875, which I've rounded up to 2000.
       See: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Limits.html#RDS_Limits.MaxConnections
+  ConjurAuthenticators:
+    Type: String
+    Description: |
+      Comma separated list of authenticators (as defined in policy), without the conjur/ prefix.
+      Eg for an authenticator policy conjur:policy:conjur/authn-oidc/cybr-identity,
+      ConjurAuthenticatators="authn-oidc/cybr-identity"
 
 Conditions:
   GenerateDataKey: !Equals
@@ -373,6 +379,8 @@ Resources:
               Value: !Ref ContainerProcesses
             - Name: RAILS_MAX_THREADS
               Value: !Ref PumaThreads
+            - Name: CONJUR_AUTHENTICATORS
+              Value: !Ref ConjurAuthenticators
           Secrets:
             - Name: CONJUR_KEY
               ValueFrom: !If
