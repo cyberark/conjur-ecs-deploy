@@ -28,6 +28,7 @@ pipeline {
     stage('Smoke Test'){
       environment {
         STACK_NAME = "ecsdeployci${BRANCH_NAME.replaceAll("[^A-Za-z0-9]", "").toLowerCase().take(6)}${BUILD_NUMBER}"
+        ELB_PREFIXLIST_ID="pl-05978d3ff26527d2a"
       }
       steps {
         sh 'summon -f scripts/secrets.yml scripts/prepare'

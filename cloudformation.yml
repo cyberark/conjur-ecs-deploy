@@ -145,6 +145,20 @@ Parameters:
       The 1.25 is to leave reserved connections for replicas and admins.
       For the defaults thats 6 * 50 * 5 * 1.25 = 1875, which I've rounded up to 2000.
       See: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Limits.html#RDS_Limits.MaxConnections
+  ElbPrefixListId:
+    Type: String
+    Default: ''
+    Description: |
+      This prefix list will be added to the elb security group, so only requests with a source IP that matches
+      an entry in the prefix list will be allowed.
+  ElbCidr:
+    Type: String
+    Default: '0.0.0.0/0'
+    Description: |
+      Requests from this CIDR will be allowed to access the load balancer. If you wish to restrict
+      access to this conjur instance by IP, please override this CIDR. For finer control, specify
+      a prefix list id in ElbPrefixListId. Note that if ElbPrefixListId is specified then this
+      parameter is ignored.
   ConjurAuthenticators:
     Type: String
     Description: |
@@ -159,6 +173,7 @@ Conditions:
   GenerateDBPassword: !Equals
     - !Ref ConjurDBPasswordARN
     - Generate
+  ElbUsePrefixList: !Not [!Equals [!Ref ElbPrefixListId, ""]]
 
 Resources:
   ConjurDataKey:
@@ -223,7 +238,8 @@ Resources:
         - IpProtocol: tcp
           FromPort: 443
           ToPort: 443
-          CidrIp: 0.0.0.0/0
+          CidrIp: !If [ElbUsePrefixList, !Ref "AWS::NoValue", !Ref ElbCidr]
+          SourcePrefixListId: !If [ElbUsePrefixList, !Ref ElbPrefixListId, !Ref "AWS::NoValue"]
   Cluster:
     Type: 'AWS::ECS::Cluster'
     Properties:

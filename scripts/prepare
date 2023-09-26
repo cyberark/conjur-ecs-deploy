@@ -27,6 +27,8 @@ CONTAINER_MEMORY="${CONTAINER_MEMORY:-8192}"
 MAX_CONTAINERS="${MAX_CONTAINERS:-6}"
 MIN_CONTAINERS="${MIN_CONTAINERS:-2}"
 CONJUR_AUTHENTICATORS="${CONJUR_AUTHENTICATORS:-}"
+ELB_PREFIXLIST_ID="${ELB_PREFIXLIST_ID:-}"
+ELB_CIDR="${ELB_CIDR:-}"
 
 # Generate a random string of characters in a specific character class (according to tr)
 # Used to generate conjur admin password if the secret doesn't already exist.
@@ -134,5 +136,7 @@ sed \
   -e "s/%CONTAINER_MEMORY%/${CONTAINER_MEMORY}/" \
   -e "s/%MAX_CONTAINERS%/${MAX_CONTAINERS}/" \
   -e "s/%MIN_CONTAINERS%/${MIN_CONTAINERS}/" \
+  -e "s/%ELB_PREFIXLIST_ID%/${ELB_PREFIXLIST_ID}/" \
+  -e "s/%ELB_CIDR%/${ELB_CIDR}/" \
   < "${PARAMS_TEMPLATE}" \
   > params.json
