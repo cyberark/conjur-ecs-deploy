@@ -90,6 +90,13 @@
   {
     "ParameterKey": "ConjurAuthenticators",
     "ParameterValue": "%CONJUR_AUTHENTICATORS%"
+  },
+  {
+    "ParameterKey": "ElbPrefixListId",
+    "ParameterValue": "%ELB_PREFIXLIST_ID%"
+  },
+  {
+    "ParameterKey": "ElbCidr",
+    "ParameterValue": "%ELB_CIDR%"
   }
-  
 ]
