@@ -9,7 +9,7 @@ set -x # After bash-lib init
 TEST_VAR="TestPolicy/TestVariable"
 TEST_VAR_VALUE_1="$(uuidgen)"
 TEST_VAR_VALUE_2="$(uuidgen)"
-BASE_URL="https://${STACK_NAME}.${DOMAIN_NAME}"
+BASE_URL="https://${INFRAPOOL_STACK_NAME}.${DOMAIN_NAME}"
 AB_REQUESTS="500"
 
 # Relative because it will be used within docker
@@ -22,7 +22,7 @@ collect_lb_logs(){
   sleep 360
   mkdir -p lblogsync lb_logs
   # Download all the LB logs from s3 to lblogsync
-  aws s3 sync "s3://org-conjur-${STACK_NAME}-alb-log-bucket" lblogsync
+  aws s3 sync "s3://org-conjur-${INFRAPOOL_STACK_NAME}-alb-log-bucket" lblogsync
   # Move all the logs to lb_logs to flatten the hierachy
   find lblogsync -name "*.log.gz" | while read -r log; do
     mv "${log}" lb_logs
@@ -37,7 +37,7 @@ collect_lb_logs(){
 
 # Main flow
 
-export LOG_GROUP="${STACK_NAME}-conjur-log-group"
+export LOG_GROUP="${INFRAPOOL_STACK_NAME}-conjur-log-group"
 "${SCRIPTS_DIR}"/tail_ecs_logs &
 LOG_TAIL_PID="${!}"
 trap 'collect_lb_logs; kill -9 ${LOG_TAIL_PID} || true' EXIT

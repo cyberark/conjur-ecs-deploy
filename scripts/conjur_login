@@ -55,8 +55,8 @@ get_admin_password(){
 # Main flow
 
 # Verify Inputs
-if [[ -z "${STACK_NAME}" ]]; then
-  bl_die "STACK_NAME must be set before running ${0}"
+if [[ -z "${INFRAPOOL_STACK_NAME}" ]]; then
+  bl_die "INFRAPOOL_STACK_NAME must be set before running ${0}"
 fi
 if [[ ! -r "${ADMIN_PASSWORD_METADATA_FILE}" ]];  then
   bl_die "Cannot open file ${ADMIN_PASSWORD_METADATA_FILE}, did you run scripts/prepare?"
@@ -66,7 +66,7 @@ mkdir -p "${CLI_ROOT}"
 
 # Configure CLI if not already configured.
 if [[ ! -e ${CLI_ROOT}/conjur-conjur.pem ]]; then
-  echo -e "yes\nconjur" |dconjur init -u "https://${STACK_NAME}.${DOMAIN_NAME}"
+  echo -e "yes\nconjur" |dconjur init -u "https://${INFRAPOOL_STACK_NAME}.${DOMAIN_NAME}"
   set +x +o history
   echo "dconjur authn login -u admin -p \"***\""
   dconjur authn login -u admin -p "$(get_admin_password)"

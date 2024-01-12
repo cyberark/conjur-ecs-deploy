@@ -1,5 +1,5 @@
 pipeline {
-  agent { label 'executor-v2' }
+  agent { label 'conjur-enterprise-common-agent' }
 
   options {
     timestamps()
@@ -15,33 +15,48 @@ pipeline {
   }
 
   stages {
+    stage('Get InfraPool Agents') {
+      steps{
+        script {
+          INFRAPOOL_EXECUTORV2_AGENT_0 = getInfraPoolAgent.connected(type: "ExecutorV2", quantity: 1, duration: 1)[0]
+        }
+      }
+    }
     stage('Lint'){
       steps {
-        sh 'scripts/lint'
+        script {
+          INFRAPOOL_EXECUTORV2_AGENT_0.agentSh 'scripts/lint'
+        }
       }
     }
     stage('Validate Changelog') {
       steps {
-        sh 'ci/parse-changelog'
+        script {
+          INFRAPOOL_EXECUTORV2_AGENT_0.agentSh 'ci/parse-changelog'
+        }
       }
     }
     stage('Smoke Test'){
       environment {
-        STACK_NAME = "ecsdeployci${BRANCH_NAME.replaceAll("[^A-Za-z0-9]", "").toLowerCase().take(6)}${BUILD_NUMBER}"
+        INFRAPOOL_STACK_NAME = "ecsdeployci${BRANCH_NAME.replaceAll("[^A-Za-z0-9]", "").toLowerCase().take(6)}${BUILD_NUMBER}"
       }
       steps {
-        sh 'summon -f scripts/secrets.yml scripts/prepare'
-        sh 'summon -f scripts/secrets.yml scripts/deploy'
-        sh 'summon -f scripts/secrets.yml scripts/exercise'
+        script {
+          INFRAPOOL_EXECUTORV2_AGENT_0.agentSh 'summon -f scripts/secrets.yml scripts/prepare'
+          INFRAPOOL_EXECUTORV2_AGENT_0.agentSh 'summon -f scripts/secrets.yml scripts/deploy'
+          INFRAPOOL_EXECUTORV2_AGENT_0.agentSh 'summon -f scripts/secrets.yml scripts/exercise'
+        }
       }
       post {
         always {
-          archiveArtifacts(artifacts: 'params.json')
-          archiveArtifacts(artifacts: 'admin_password_meta.json', allowEmptyArchive: true)
-          archiveArtifacts(artifacts: 'stack_*.json')
-          archiveArtifacts(artifacts: '**/*.log', allowEmptyArchive: true)
-          archiveArtifacts(artifacts: 'conjur_git_commit', allowEmptyArchive: true)
-          sh 'summon -f scripts/secrets.yml scripts/cleanup'
+          script {
+            INFRAPOOL_EXECUTORV2_AGENT_0.agentArchiveArtifacts(artifacts: 'params.json')
+            INFRAPOOL_EXECUTORV2_AGENT_0.agentArchiveArtifacts(artifacts: 'admin_password_meta.json', allowEmptyArchive: true)
+            INFRAPOOL_EXECUTORV2_AGENT_0.agentArchiveArtifacts(artifacts: 'stack_*.json')
+            INFRAPOOL_EXECUTORV2_AGENT_0.agentArchiveArtifacts(artifacts: '**/*.log', allowEmptyArchive: true)
+            INFRAPOOL_EXECUTORV2_AGENT_0.agentArchiveArtifacts(artifacts: 'conjur_git_commit', allowEmptyArchive: true)
+            INFRAPOOL_EXECUTORV2_AGENT_0.agentSh 'summon -f scripts/secrets.yml scripts/cleanup'
+          }
         }
       }
     }
@@ -49,7 +64,7 @@ pipeline {
 
     post {
     always {
-      cleanupAndNotify(currentBuild.currentResult)
+      releaseInfraPoolAgent(".infrapool/release_agents")
     }
   }
 }

@@ -6,38 +6,38 @@ SCRIPTS_DIR="$(dirname "${BASH_SOURCE[0]}")"
 . "${SCRIPTS_DIR}/../bash-lib/init"
 set -x # After bash-lib init
 
-ADMIN_PASSWORD_SECRET_NAME="${ADMIN_PASSWORD_SECRET_NAME:-${STACK_NAME}_adminpassword}"
+ADMIN_PASSWORD_SECRET_NAME="${ADMIN_PASSWORD_SECRET_NAME:-${INFRAPOOL_STACK_NAME}_adminpassword}"
 
 remove_stack(){
-  echo "Initiating Stack Deletion: ${STACK_NAME}"
+  echo "Initiating Stack Deletion: ${INFRAPOOL_STACK_NAME}"
   aws cloudformation delete-stack \
-    --stack-name "${STACK_NAME}"
+    --stack-name "${INFRAPOOL_STACK_NAME}"
 
-  echo "Waiting for stack deletion: ${STACK_NAME}"
+  echo "Waiting for stack deletion: ${INFRAPOOL_STACK_NAME}"
   aws cloudformation wait stack-delete-complete \
-    --stack-name "${STACK_NAME}"
+    --stack-name "${INFRAPOOL_STACK_NAME}"
 
 }
 
 
-if [[ -z "${STACK_NAME}" ]]; then
-  bl_die "STACK_NAME must be set before running ${0}"
+if [[ -z "${INFRAPOOL_STACK_NAME}" ]]; then
+  bl_die "INFRAPOOL_STACK_NAME must be set before running ${0}"
 fi
 
 STACK_ARN="$(aws cloudformation describe-stacks \
-  --stack-name "${STACK_NAME}" \
+  --stack-name "${INFRAPOOL_STACK_NAME}" \
   --output json \
   | jq -r '.Stacks[0].StackId')"
-echo "Resolved stack name ${STACK_NAME} to ARN: ${STACK_ARN}"
+echo "Resolved stack name ${INFRAPOOL_STACK_NAME} to ARN: ${STACK_ARN}"
 
 echo "Removing admin password secret"
 aws secretsmanager delete-secret --secret-id "${ADMIN_PASSWORD_SECRET_NAME}" ||:
 
 echo "Storing stack resources"
-aws cloudformation describe-stack-resources --stack-name "${STACK_NAME}" --output json > stack_resources.json
+aws cloudformation describe-stack-resources --stack-name "${INFRAPOOL_STACK_NAME}" --output json > stack_resources.json
 
 echo "Removing LB Logs S3 Bucket"
-aws s3 rb "s3://org-conjur-${STACK_NAME}-alb-log-bucket" --force ||:
+aws s3 rb "s3://org-conjur-${INFRAPOOL_STACK_NAME}-alb-log-bucket" --force ||:
 
 bl_retry_constant 3 600 remove_stack
 

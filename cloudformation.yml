@@ -579,7 +579,6 @@ Resources:
         IgnorePublicAcls: true
         BlockPublicPolicy: true
         BlockPublicAcls: true
-      AccessControl: Private
       LifecycleConfiguration:
         Rules:
           - Id: ExpireLBLogs

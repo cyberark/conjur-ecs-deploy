@@ -1,6 +1,6 @@
 [submodule "bash-lib"]
 	path = bash-lib
-	url = git@github.com:/cyberark/bash-lib
+	url = https://github.cyberng.com/Conjur-Enterprise/bash-lib.git
 [submodule "cfn-python-lint"]
 	path = cfn-python-lint
 	url = https://github.com/aws-cloudformation/cfn-python-lint
