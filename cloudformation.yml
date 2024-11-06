@@ -408,6 +408,7 @@ Resources:
       DesiredCount: !Ref MinContainers
       LaunchType: FARGATE
       HealthCheckGracePeriodSeconds: 30
+      EnableExecuteCommand: true
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED
